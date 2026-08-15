@@ -8,16 +8,21 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log(err);
+  console.error("GLOBAL ERROR:", err);
 
-  let statusCode;
-  let errorName = err.name || "Internal server error";
-  let errorMessage = err.message || "Internal server error";
+  let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+  let errorName = err?.name || "InternalServerError";
+  let errorMessage = err?.message || "Internal server error";
 
+  // Prisma Validation Error
   if (err instanceof Prisma.PrismaClientValidationError) {
     statusCode = HttpStatus.BAD_REQUEST;
+    errorName = "ValidationError";
     errorMessage = "Invalid input. Please check the provided fields.";
-  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+  }
+
+  // Prisma Known Request Error
+  else if (err instanceof Prisma.PrismaClientKnownRequestError) {
     switch (err.code) {
       case "P2000":
         statusCode = HttpStatus.BAD_REQUEST;
@@ -58,21 +63,6 @@ export const globalErrorHandler = (
       case "P2007":
         statusCode = HttpStatus.BAD_REQUEST;
         errorMessage = "Invalid data format.";
-        break;
-
-      case "P2008":
-        statusCode = HttpStatus.BAD_REQUEST;
-        errorMessage = "Failed to parse the query.";
-        break;
-
-      case "P2009":
-        statusCode = HttpStatus.BAD_REQUEST;
-        errorMessage = "Failed to validate the query.";
-        break;
-
-      case "P2010":
-        statusCode = HttpStatus.BAD_REQUEST;
-        errorMessage = "Raw query execution failed.";
         break;
 
       case "P2011":
@@ -144,24 +134,40 @@ export const globalErrorHandler = (
       default:
         statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         errorMessage = "A database error occurred.";
-        break;
     }
-  } else if (err instanceof Prisma.PrismaClientInitializationError) {
+  }
+
+  // Prisma Initialization Error
+  else if (err instanceof Prisma.PrismaClientInitializationError) {
     statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    errorName = "DatabaseConnectionError";
     errorMessage = "Failed to connect to the database.";
-  } else if (err instanceof Prisma.PrismaClientRustPanicError) {
+  }
+
+  // Prisma Rust Panic
+  else if (err instanceof Prisma.PrismaClientRustPanicError) {
     statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    errorName = "DatabaseEngineError";
     errorMessage = "An unexpected database engine error occurred.";
-  } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+  }
+
+  // Prisma Unknown Request Error
+  else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
     statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    errorName = "DatabaseError";
     errorMessage = "An unknown database error occurred.";
   }
 
-  res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+  // Send response
+  res.status(statusCode).json({
     success: false,
-    statusCode: statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+    statusCode,
     name: errorName,
     message: errorMessage,
-    error: err.stack,
+
+    // Development only
+    ...(process.env.NODE_ENV === "development" && {
+      error: err.stack,
+    }),
   });
 };

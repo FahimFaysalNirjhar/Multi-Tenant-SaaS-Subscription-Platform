@@ -9,7 +9,7 @@ export interface IRegisterUser {
   password: string;
 
   organizationName: string;
-  planId: string;
+  planId?: string;
 }
 
 export interface ILoginUser {
@@ -23,7 +23,7 @@ export interface IForgotPassword {
 
 export interface IResetPassword {
   token: string;
-  newPassword: string;
+  password: string;
 }
 
 export interface IChangePassword {

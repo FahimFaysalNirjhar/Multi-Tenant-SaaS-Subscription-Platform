@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { jwtUtils } from "../utils/jwt";
-import config from "../../config";
+
 import { IJwtPayload } from "../auth/auth.interface";
+import config from "../../config";
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -6,8 +6,10 @@ model Plan {
 
   price    Decimal      @db.Decimal(10, 2)
   interval PlanInterval
-
   features Json
+
+  stripeProductId String? @unique
+  stripePriceId   String? @unique
 
   isActive Boolean @default(true)
 
