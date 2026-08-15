@@ -1,29 +1,29 @@
 model Subscription {
-  id                   String             @id @default(cuid())
+  id String @id @default(cuid())
 
-  organizationId       String
-  planId               String
+  organizationId String
+  planId         String
 
-  status               SubscriptionStatus @default(PENDING)
+  status SubscriptionStatus @default(PENDING)
 
   stripeCustomerId     String?
-  stripeSubscriptionId String?            @unique
+  stripeSubscriptionId String? @unique
 
-  currentPeriodStart   DateTime?
-  currentPeriodEnd     DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
 
-  cancelledAt          DateTime?
-  cancelAtPeriodEnd    Boolean            @default(false)
+  cancelledAt       DateTime?
+  cancelAtPeriodEnd Boolean   @default(false)
 
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  organization         Organization @relation(fields: [organizationId], references:[id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  plan                 Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
 
-  payments             Payment[]
-  transactions         Transaction[]
+  payments     Payment[]
+  transactions Transaction[]
 
   @@index([organizationId])
   @@index([organizationId, status])

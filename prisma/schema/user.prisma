@@ -1,17 +1,18 @@
 model User {
-  id           String        @id @default(cuid())
+  id           String       @id @default(cuid())
   name         String
-  email        String        @unique
+  email        String       @unique
   password     String
-  platformRole PlatformRole  @default(USER)
-  status       UserStatus    @default(ACTIVE)
+  platformRole PlatformRole @default(USER)
+  status       UserStatus   @default(ACTIVE)
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  memberships  OrganizationMember[]
+  memberships OrganizationMember[]
 
-  invitationsSent OrganizationInvitation[] @relation("InvitationSender")
+  invitationsSent     OrganizationInvitation[] @relation("InvitationSender")
+  passwordResetTokens PasswordResetToken[]
 
   @@index([email])
   @@index([status])

@@ -1,15 +1,15 @@
 model StripeWebhookEvent {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  stripeEventId String   @unique
+  stripeEventId String @unique
   eventType     String
 
-  processed     Boolean  @default(false)
-  processedAt   DateTime?
+  processed   Boolean   @default(false)
+  processedAt DateTime?
 
-  payload       Json
+  payload Json
 
-  createdAt     DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([eventType])
   @@index([processed])

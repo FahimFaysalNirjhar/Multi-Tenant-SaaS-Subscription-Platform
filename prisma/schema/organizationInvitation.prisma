@@ -1,24 +1,24 @@
 model OrganizationInvitation {
-  id             String           @id @default(cuid())
+  id String @id @default(cuid())
 
   organizationId String
   invitedById    String
 
-  email          String
-  role           OrganizationRole @default(MEMBER)
+  email String
+  role  OrganizationRole @default(MEMBER)
 
-  token          String           @unique
+  token String @unique
 
-  status         InvitationStatus @default(PENDING)
+  status InvitationStatus @default(PENDING)
 
-  expiresAt      DateTime
-  acceptedAt     DateTime?
+  expiresAt  DateTime
+  acceptedAt DateTime?
 
-  createdAt      DateTime         @default(now())
+  createdAt DateTime @default(now())
 
-  organization   Organization @relation(fields: [organizationId], references: [id],onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  invitedBy      User @relation("InvitationSender", fields: [invitedById],references: [id])
+  invitedBy User @relation("InvitationSender", fields: [invitedById], references: [id])
 
   @@index([organizationId])
   @@index([email])
