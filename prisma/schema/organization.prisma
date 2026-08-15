@@ -21,4 +21,5 @@ model Organization {
   @@index([name])
   @@index([status])
   @@index([createdAt])
+  @@map("organization")
 }

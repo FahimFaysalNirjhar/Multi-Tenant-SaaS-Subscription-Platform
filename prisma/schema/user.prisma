@@ -15,4 +15,5 @@ model User {
 
   @@index([email])
   @@index([status])
+  @@map("user")
 }

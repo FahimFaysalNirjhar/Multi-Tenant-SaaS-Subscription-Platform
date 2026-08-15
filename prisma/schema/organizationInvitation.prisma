@@ -1,0 +1,27 @@
+model OrganizationInvitation {
+  id             String           @id @default(cuid())
+
+  organizationId String
+  invitedById    String
+
+  email          String
+  role           OrganizationRole @default(MEMBER)
+
+  token          String           @unique
+
+  status         InvitationStatus @default(PENDING)
+
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+
+  createdAt      DateTime         @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id],onDelete: Cascade)
+
+  invitedBy      User @relation("InvitationSender", fields: [invitedById],references: [id])
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([token])
+  @@map("organizationInvitation")
+}

@@ -1,0 +1,30 @@
+model Transaction {
+  id             String            @id @default(cuid())
+
+  organizationId String
+  subscriptionId String?
+  paymentId      String?           @unique
+
+  amount         Decimal           @db.Decimal(10, 2)
+  currency       String            @default("usd")
+
+  status         TransactionStatus @default(PENDING)
+  type           PaymentType
+
+  reference      String            @unique
+  description    String?
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id],onDelete: Cascade)
+
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id],onDelete: SetNull)
+
+  payment        Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@map("transaction")
+}

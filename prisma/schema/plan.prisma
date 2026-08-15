@@ -1,0 +1,22 @@
+model Plan {
+  id            String       @id @default(cuid())
+
+  name          String       @unique
+  description   String?
+
+  price         Decimal      @db.Decimal(10, 2)
+  interval      PlanInterval
+
+  features      Json
+
+  isActive      Boolean      @default(true)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([isActive])
+  @@map("plan")
+}
+
