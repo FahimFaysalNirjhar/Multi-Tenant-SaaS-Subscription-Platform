@@ -8,12 +8,10 @@ import { IJwtPayload } from "../auth/auth.interface";
 
 interface ICreateOrganization {
   name: string;
-  slug: string;
 }
 
 interface IUpdateOrganization {
   name?: string;
-  slug?: string;
 }
 
 interface IInviteMember {
@@ -27,26 +25,28 @@ const createOrganization = async (
 ) => {
   const existingOrganization = await prisma.organization.findFirst({
     where: {
-      OR: [
-        {
-          name: payload.name,
-        },
-        {
-          slug: payload.slug,
-        },
-      ],
+      name: payload.name,
     },
   });
 
   if (existingOrganization) {
-    throw new Error("An organization with this name or slug already exists");
+    throw new Error("An organization with this name already exists");
   }
 
   const organization = await prisma.organization.create({
     data: {
       name: payload.name,
-      slug: payload.slug,
-      ownerId: user.id,
+    },
+  });
+
+  // The creator becomes the org's first admin — there is no separate
+  // "owner" concept in this schema, only OrganizationMember.role.
+  await prisma.organizationMember.create({
+    data: {
+      userId: user.id,
+      organizationId: organization.id,
+      role: "ADMIN",
+      status: "ACTIVE",
     },
   });
 
@@ -64,11 +64,19 @@ const getAllOrganizations = async () => {
     },
 
     include: {
-      owner: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+      members: {
+        where: {
+          role: "ADMIN",
+        },
+        take: 1,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
       },
 
@@ -80,7 +88,10 @@ const getAllOrganizations = async () => {
     },
   });
 
-  return organizations;
+  return organizations.map((org) => ({
+    ...org,
+    admin: org.members[0]?.user ?? null,
+  }));
 };
 
 // ======================================
@@ -94,11 +105,18 @@ const getOrganizationById = async (id: string) => {
     },
 
     include: {
-      owner: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          joinedAt: "asc",
         },
       },
 
@@ -163,30 +181,18 @@ const updateOrganization = async (id: string, payload: IUpdateOrganization) => {
     throw new Error("Organization not found");
   }
 
-  if (payload.name || payload.slug) {
+  if (payload.name) {
     const duplicate = await prisma.organization.findFirst({
       where: {
-        AND: [
-          {
-            id: {
-              not: id,
-            },
-          },
-          {
-            OR: [
-              ...(payload.name ? [{ name: payload.name }] : []),
-
-              ...(payload.slug ? [{ slug: payload.slug }] : []),
-            ],
-          },
-        ],
+        id: {
+          not: id,
+        },
+        name: payload.name,
       },
     });
 
     if (duplicate) {
-      throw new Error(
-        "Another organization already exists with this name or slug",
-      );
+      throw new Error("Another organization already exists with this name");
     }
   }
 
@@ -438,6 +444,42 @@ const getPendingInvitations = async (organizationId: string) => {
   return invitations;
 };
 
+// ======================================
+// Update My Organization
+// (org profile self-service — name/contact/billing details)
+// ======================================
+
+interface IUpdateMyOrganization {
+  name?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  billingEmail?: string;
+}
+
+const updateMyOrganization = async (
+  organizationId: string,
+  payload: IUpdateMyOrganization,
+) => {
+  const organization = await prisma.organization.findUnique({
+    where: {
+      id: organizationId,
+    },
+  });
+
+  if (!organization) {
+    throw new Error("Organization not found");
+  }
+
+  const updatedOrganization = await prisma.organization.update({
+    where: {
+      id: organizationId,
+    },
+    data: payload,
+  });
+
+  return updatedOrganization;
+};
+
 export const organizationService = {
   createOrganization,
   getAllOrganizations,
@@ -451,4 +493,5 @@ export const organizationService = {
   updateMemberRole,
   removeMember,
   getPendingInvitations,
+  updateMyOrganization,
 };

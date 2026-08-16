@@ -246,6 +246,26 @@ const getPendingInvitations = catchAsync(
   },
 );
 
+const updateMyOrganization = catchAsync(async (req: Request, res: Response) => {
+  const organizationId = req.user?.organizationId;
+
+  if (!organizationId) {
+    throw new Error("You are not a member of any organization");
+  }
+
+  const result = await organizationService.updateMyOrganization(
+    organizationId,
+    req.body,
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: HttpStatus.OK,
+    message: "Organization updated successfully",
+    data: result,
+  });
+});
+
 export const organizationController = {
   createOrganization,
   getAllOrganizations,
@@ -259,4 +279,5 @@ export const organizationController = {
   updateMemberRole,
   removeMember,
   getPendingInvitations,
+  updateMyOrganization,
 };

@@ -5,8 +5,11 @@ dotenv.config({
   path: path.join(process.cwd(), ".env"),
 });
 
-// console.log("JWT ACCESS:", process.env.JWT_ACCESS_SECRET);
-// console.log("JWT REFRESH:", process.env.JWT_REFRESH_SECRET);
+console.log("APP_URL:", process.env.APP_URL);
+console.log(
+  "STRIPE_SECRET_KEY:",
+  process.env.STRIPE_SECRET_KEY ? "Stripe key loaded" : "Stripe key NOT loaded",
+);
 
 console.log("APP_URL from ENV:", process.env.APP_URL);
 

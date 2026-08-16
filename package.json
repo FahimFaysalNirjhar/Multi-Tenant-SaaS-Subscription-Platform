@@ -10,6 +10,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsup",
     "start": "node dist/server.js",
+    "webhook:stripe": "stripe listen --forward-to localhost:5000/api/payment/webhook",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
@@ -34,6 +35,7 @@
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
+    "stripe": "^22.5.0",
     "zod": "^4.4.3"
   }
 }

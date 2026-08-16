@@ -6,10 +6,11 @@ import { globalErrorHandler } from "./modules/utils/globalErrorHandler";
 import { authRouter } from "./modules/auth/auth.route";
 import { planRouter } from "./modules/plan/plan.route";
 import { organizationRouter } from "./modules/organization/organization.route";
+import { subscriptionRouter } from "./modules/Subscription/subscription.route";
+
+import { webhookRouter } from "./modules/Webhook/webhook.route";
 
 const app: Application = express();
-
-console.log("CORS origin:", config.app_url);
 
 app.use(
   cors({
@@ -18,6 +19,10 @@ app.use(
   }),
 );
 
+// Stripe webhook MUST come before express.json()
+app.use("/api/payment", webhookRouter);
+
+// Normal JSON middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -29,6 +34,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", authRouter);
 app.use("/api/plans", planRouter);
 app.use("/api/organizations", organizationRouter);
+app.use("/api/subscriptions", subscriptionRouter);
 
 app.use(globalErrorHandler);
 

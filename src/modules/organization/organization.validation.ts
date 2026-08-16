@@ -39,7 +39,7 @@ const updateOrganizationValidationSchema = z.object({
 
 const updateOrganizationStatusValidationSchema = z.object({
   body: z.object({
-    isActive: z.boolean(),
+    status: z.enum(["PENDING", "ACTIVE", "TRIAL", "SUSPENDED", "CANCELLED"]),
   }),
 });
 
@@ -59,10 +59,20 @@ const updateMemberRoleValidationSchema = z.object({
   }),
 });
 
+const updateMyOrganizationValidationSchema = z.object({
+  body: z.object({
+    name: z.string().min(2).optional(),
+    contactEmail: z.email().optional().or(z.literal("")),
+    contactPhone: z.string().optional(),
+    billingEmail: z.email().optional().or(z.literal("")),
+  }),
+});
+
 export const organizationValidation = {
   createOrganizationValidationSchema,
   updateOrganizationValidationSchema,
   updateOrganizationStatusValidationSchema,
   inviteMemberValidationSchema,
   updateMemberRoleValidationSchema,
+  updateMyOrganizationValidationSchema,
 };

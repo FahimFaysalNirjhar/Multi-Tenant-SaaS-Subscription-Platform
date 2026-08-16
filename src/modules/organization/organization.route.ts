@@ -49,6 +49,14 @@ router.get("/me", auth, organizationController.getMyOrganization);
 // MUST also be registered before "/:id" for the same reason as "/me".
 // ======================================
 
+router.patch(
+  "/me",
+  auth,
+  authorize(OrganizationRole.ADMIN),
+  validateRequest(organizationValidation.updateMyOrganizationValidationSchema),
+  organizationController.updateMyOrganization,
+);
+
 router.get(
   "/members",
   auth,
