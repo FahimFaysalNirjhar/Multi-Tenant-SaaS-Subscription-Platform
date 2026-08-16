@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { globalErrorHandler } from "./modules/utils/globalErrorHandler";
 import { authRouter } from "./modules/auth/auth.route";
 import { planRouter } from "./modules/plan/plan.route";
+import { organizationRouter } from "./modules/organization/organization.route";
 
 const app: Application = express();
 
@@ -27,6 +28,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/plans", planRouter);
+app.use("/api/organizations", organizationRouter);
 
 app.use(globalErrorHandler);
 
