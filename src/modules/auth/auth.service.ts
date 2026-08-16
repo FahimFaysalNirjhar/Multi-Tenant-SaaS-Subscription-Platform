@@ -94,17 +94,49 @@ const registerUser = async (payload: IRegisterUser) => {
     };
   });
 
+  // Issue tokens immediately — same shape as loginUser — so the frontend
+  // can go straight into checkout without a separate login step. Without
+  // this, req.user.organizationId is null on the very next request
+  // (e.g. createCheckoutSession) because there's no session at all yet.
+  const jwtPayload: IJwtPayload = {
+    id: result.user.id,
+    email: result.user.email,
+    name: result.user.name,
+
+    platformRole: result.user.platformRole,
+
+    organizationId: result.organization.id,
+    organizationRole: result.membership.role,
+  };
+
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_secret,
+    config.jwt_access_expires_in as SignOptions["expiresIn"],
+  );
+
+  const refreshToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_refesh_secret,
+    config.jwt_refresh_expiries_in as SignOptions["expiresIn"],
+  );
+
   return {
+    accessToken,
+    refreshToken,
+
     user: {
       id: result.user.id,
       name: result.user.name,
       email: result.user.email,
-    },
+      platformRole: result.user.platformRole,
 
-    organization: {
-      id: result.organization.id,
-      name: result.organization.name,
-      status: result.organization.status,
+      organization: {
+        id: result.organization.id,
+        name: result.organization.name,
+        role: result.membership.role,
+        status: result.organization.status,
+      },
     },
 
     plan: plan
@@ -270,69 +302,6 @@ const issueRefreshToken = async (refreshToken: string) => {
 // ======================================================
 // FORGOT PASSWORD
 // ======================================================
-
-// const forgotPassword = async (payload: IForgotPassword) => {
-//   const { email } = payload;
-
-//   const user = await prisma.user.findUnique({
-//     where: {
-//       email,
-//     },
-//   });
-
-//   /*
-//    * Don't expose whether the email exists.
-//    */
-
-//   if (!user) {
-//     return {
-//       message:
-//         "If an account exists with this email, a password reset link has been sent.",
-//     };
-//   }
-
-//   // Generate secure token
-//   const token = crypto.randomBytes(32).toString("hex");
-
-//   // 15 minutes
-//   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-//   // Invalidate old tokens
-//   await prisma.passwordResetToken.updateMany({
-//     where: {
-//       userId: user.id,
-//       used: false,
-//     },
-
-//     data: {
-//       used: true,
-//     },
-//   });
-
-//   await prisma.passwordResetToken.create({
-//     data: {
-//       userId: user.id,
-//       token,
-//       expiresAt,
-//     },
-//   });
-
-//   /*
-//    * Later send email here.
-//    *
-//    * reset URL:
-//    *
-//    * https://frontend.com/reset-password?token=${token}
-//    */
-
-//   return {
-//     message:
-//       "If an account exists with this email, a password reset link has been sent.",
-
-//     // Remove this in production.
-//     resetToken: token,
-//   };
-// };
 
 const forgotPassword = async (payload: IForgotPassword) => {
   const { email } = payload;

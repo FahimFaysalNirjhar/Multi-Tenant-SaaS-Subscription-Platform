@@ -156,6 +156,19 @@ const getMyOrganization = async (user: IJwtPayload) => {
           members: true,
         },
       },
+
+      // Not filtered to status: "ACTIVE" — a PENDING or FAILED subscription
+      // still needs to show up (e.g. "payment pending", "payment failed"),
+      // not silently disappear as if there were no subscription at all.
+      subscriptions: {
+        include: {
+          plan: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+      },
     },
   });
 
@@ -163,7 +176,12 @@ const getMyOrganization = async (user: IJwtPayload) => {
     throw new Error("Organization not found");
   }
 
-  return organization;
+  const { subscriptions, ...rest } = organization;
+
+  return {
+    ...rest,
+    subscription: subscriptions[0] ?? null,
+  };
 };
 
 // ======================================

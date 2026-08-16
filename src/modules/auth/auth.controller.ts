@@ -12,13 +12,38 @@ import { authService } from "./auth.service";
 
 const registerUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await authService.registerUser(req.body);
+    const { accessToken, refreshToken, user, plan } =
+      await authService.registerUser(req.body);
+
+    // Log the new admin in immediately — same cookie handling as loginUser.
+    // Without this, there's no session after registering, and the very
+    // next request (e.g. creating a Stripe checkout session) has no
+    // organizationId to work with.
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
 
     sendResponse(res, {
       success: true,
       statusCode: HttpStatus.CREATED,
       message: "User registered successfully",
-      data: result,
+
+      data: {
+        accessToken,
+        refreshToken,
+        user,
+        plan,
+      },
     });
   },
 );
