@@ -5,6 +5,13 @@ import { IJwtPayload } from "../auth/auth.interface";
 import config from "../../config";
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
+  console.log(
+    "AUTH DEBUG — header:",
+    req.headers.authorization,
+    "cookie:",
+    req.cookies?.accessToken,
+  );
+
   try {
     let token = req.cookies?.accessToken;
 
